@@ -1,0 +1,1164 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2580
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fmodern\fcharset0 Courier-Bold;\f1\fmodern\fcharset0 Courier;\f2\fmodern\fcharset0 Courier-Oblique;
+}
+{\colortbl;\red255\green255\blue255;\red15\green112\blue1;\red245\green245\blue245;\red38\green38\blue38;
+\red0\green0\blue255;\red83\green83\blue83;\red151\green0\blue255;\red169\green14\blue26;\red51\green110\blue109;
+}
+{\*\expandedcolortbl;;\cssrgb\c0\c50196\c0;\cssrgb\c96863\c96863\c96863;\cssrgb\c20000\c20000\c20000;
+\cssrgb\c0\c0\c100000;\cssrgb\c40000\c40000\c40000;\cssrgb\c66667\c13333\c100000;\cssrgb\c72941\c12941\c12941;\cssrgb\c25098\c50196\c50196;
+}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\b\fs28 \cf2 \cb3 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 class
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf5 \strokec5 HangmanAPI
+\f1\b0 \cf4 \strokec4 (\cf2 \strokec2 object\cf4 \strokec4 ):\
+    
+\f0\b \cf2 \strokec2 def
+\f1\b0 \cf4 \strokec4  \cf5 \strokec5 __init__\cf4 \strokec4 (\cf2 \strokec2 self\cf4 \strokec4 , access_token\cf6 \strokec6 =
+\f0\b \cf2 \strokec2 None
+\f1\b0 \cf4 \strokec4 , session\cf6 \strokec6 =
+\f0\b \cf2 \strokec2 None
+\f1\b0 \cf4 \strokec4 , timeout\cf6 \strokec6 =
+\f0\b \cf2 \strokec2 None
+\f1\b0 \cf4 \strokec4 ):\
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 access_token \cf6 \strokec6 =\cf4 \strokec4  access_token\
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 session \cf6 \strokec6 =\cf4 \strokec4  session 
+\f0\b \cf7 \strokec7 or
+\f1\b0 \cf4 \strokec4  requests\cf6 \strokec6 .\cf4 \strokec4 Session()\
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 timeout \cf6 \strokec6 =\cf4 \strokec4  timeout       \
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters \cf6 \strokec6 =\cf4 \strokec4  []\
+        \
+        full_dictionary_location \cf6 \strokec6 =\cf4 \strokec4  \cf8 \strokec8 "words_250000_train.txt"\cf4 \strokec4 \
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 full_dictionary \cf6 \strokec6 =\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 build_dictionary(full_dictionary_location)        \
+                        \
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set \cf6 \strokec6 =\cf4 \strokec4  \cf2 \strokec2 sorted\cf4 \strokec4 (\cf2 \strokec2 set\cf4 \strokec4 (\cf8 \strokec8 ""\cf6 \strokec6 .\cf4 \strokec4 join(\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 full_dictionary)))\
+        \
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities \cf6 \strokec6 =\cf4 \strokec4  [\cf6 \strokec6 0\cf4 \strokec4 ] \cf6 \strokec6 *\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)\
+        \
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 unigram, \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 bigram, \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 trigram, \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram, \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram \cf6 \strokec6 =\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 build_n_grams(\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 full_dictionary)\
+        \
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 tries_remaining \cf6 \strokec6 =\cf4 \strokec4  \cf6 \strokec6 6\cf4 \strokec4 \
+        \
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 current_dictionary \cf6 \strokec6 =\cf4 \strokec4  []\
+        \
+        \
+    
+\f0\b \cf2 \strokec2 def
+\f1\b0 \cf4 \strokec4  \cf5 \strokec5 guess\cf4 \strokec4 (\cf2 \strokec2 self\cf4 \strokec4 , word):  
+\f2\i \cf9 \strokec9 # word input example: "_ p p _ e "
+\f1\i0 \cf4 \strokec4 \
+        
+\f2\i \cf8 \strokec8 '''
+\f1\i0 \cf4 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+
+\f2\i \cf8 \strokec8         Given a word with either correctly gussed letters or blanks, this function
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         returns the best guess for the next letter based on the n-grams
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         '''
+\f1\i0 \cf4 \strokec4 \
+        \
+        
+\f2\i \cf9 \strokec9 # keep track of incorrect guesses to update the n-grams
+\f1\i0 \cf4 \strokec4 \
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 incorrect_guesses \cf6 \strokec6 =\cf4 \strokec4  \cf2 \strokec2 list\cf4 \strokec4 (\cf2 \strokec2 set\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters) \cf6 \strokec6 -\cf4 \strokec4  \cf2 \strokec2 set\cf4 \strokec4 (word))\
+        \
+        
+\f2\i \cf9 \strokec9 # only recalibrate if last guess was incorrect and running low on guesses
+\f1\i0 \cf4 \strokec4 \
+        
+\f2\i \cf9 \strokec9 # This is done only on low guesses so as to save the running time
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters) \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters[\cf6 \strokec6 -1\cf4 \strokec4 ] 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 incorrect_guesses  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 tries_remaining \cf6 \strokec6 <=\cf4 \strokec4  \cf6 \strokec6 3\cf4 \strokec4 :\
+            \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 recalibrate_n_grams()\
+        \
+        
+\f2\i \cf9 \strokec9 # clear out probabilities from last guess
+\f1\i0 \cf4 \strokec4 \
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities \cf6 \strokec6 =\cf4 \strokec4  [\cf6 \strokec6 0\cf4 \strokec4 ] \cf6 \strokec6 *\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)\
+\
+        
+\f2\i \cf9 \strokec9 # clean the word so that we strip away the space characters
+\f1\i0 \cf4 \strokec4 \
+        
+\f2\i \cf9 \strokec9 # replace "_" with "." as "." indicates any character in regular expressions
+\f1\i0 \cf4 \strokec4 \
+        clean_word \cf6 \strokec6 =\cf4 \strokec4  word[::\cf6 \strokec6 2\cf4 \strokec4 ]\
+        \
+        
+\f2\i \cf9 \strokec9 # run through n-gram function
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 return
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram_probs(clean_word)\
+    \
+    \
+    
+\f0\b \cf2 \strokec2 def
+\f1\b0 \cf4 \strokec4  \cf5 \strokec5 build_n_grams\cf4 \strokec4 (\cf2 \strokec2 self\cf4 \strokec4 , dictionary):\
+        
+\f2\i \cf8 \strokec8 '''
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         build nested dictionary containing occurences for n (1-5) sequences of letters
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         for unigram, take only unique letters within each word  
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         '''
+\f1\i0 \cf4 \strokec4 \
+        unigram \cf6 \strokec6 =\cf4 \strokec4  collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(
+\f0\b \cf2 \strokec2 lambda
+\f1\b0 \cf4 \strokec4 : collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(\cf2 \strokec2 int\cf4 \strokec4 ))\
+        bi_gram \cf6 \strokec6 =\cf4 \strokec4  collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(
+\f0\b \cf2 \strokec2 lambda
+\f1\b0 \cf4 \strokec4 : collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(
+\f0\b \cf2 \strokec2 lambda
+\f1\b0 \cf4 \strokec4 : collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(\cf2 \strokec2 int\cf4 \strokec4 )))\
+        tri_gram \cf6 \strokec6 =\cf4 \strokec4  collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(
+\f0\b \cf2 \strokec2 lambda
+\f1\b0 \cf4 \strokec4 : collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(
+\f0\b \cf2 \strokec2 lambda
+\f1\b0 \cf4 \strokec4 : collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(\cf2 \strokec2 int\cf4 \strokec4 )))\
+        four_gram \cf6 \strokec6 =\cf4 \strokec4  collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(
+\f0\b \cf2 \strokec2 lambda
+\f1\b0 \cf4 \strokec4 :collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(
+\f0\b \cf2 \strokec2 lambda
+\f1\b0 \cf4 \strokec4 : collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(
+\f0\b \cf2 \strokec2 lambda
+\f1\b0 \cf4 \strokec4 : collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(\cf2 \strokec2 int\cf4 \strokec4 ))))\
+        five_gram \cf6 \strokec6 =\cf4 \strokec4  collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(
+\f0\b \cf2 \strokec2 lambda
+\f1\b0 \cf4 \strokec4 : collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(
+\f0\b \cf2 \strokec2 lambda
+\f1\b0 \cf4 \strokec4 :collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(
+\f0\b \cf2 \strokec2 lambda
+\f1\b0 \cf4 \strokec4 : collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(
+\f0\b \cf2 \strokec2 lambda
+\f1\b0 \cf4 \strokec4 : collections\cf6 \strokec6 .\cf4 \strokec4 defaultdict(\cf2 \strokec2 int\cf4 \strokec4 )))))\
+        \
+        
+\f2\i \cf9 \strokec9 # go through each word in the dictionary
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  word 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  dictionary:\
+            
+\f2\i \cf9 \strokec9 # check each letter in the dictionary and update the n-gram
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 range\cf4 \strokec4 (\cf2 \strokec2 len\cf4 \strokec4 (word) \cf6 \strokec6 -\cf4 \strokec4  \cf6 \strokec6 4\cf4 \strokec4 ):\
+                bi_gram[\cf2 \strokec2 len\cf4 \strokec4 (word)][word[i]][word[i\cf6 \strokec6 +1\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+                tri_gram[word[i]][word[i\cf6 \strokec6 +1\cf4 \strokec4 ]][word[i\cf6 \strokec6 +2\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+                four_gram[word[i]][word[i\cf6 \strokec6 +1\cf4 \strokec4 ]][word[i\cf6 \strokec6 +2\cf4 \strokec4 ]][word[i\cf6 \strokec6 +3\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+                five_gram[word[i]][word[i\cf6 \strokec6 +1\cf4 \strokec4 ]][word[i\cf6 \strokec6 +2\cf4 \strokec4 ]][word[i\cf6 \strokec6 +3\cf4 \strokec4 ]][word[i\cf6 \strokec6 +4\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+            i \cf6 \strokec6 =\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (word) \cf6 \strokec6 -\cf4 \strokec4  \cf6 \strokec6 4\cf4 \strokec4 \
+            \
+            
+\f2\i \cf9 \strokec9 # fill out the rest of the n-grams for words too short
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (word) \cf6 \strokec6 ==\cf4 \strokec4  \cf6 \strokec6 2\cf4 \strokec4 :\
+                bi_gram[\cf2 \strokec2 len\cf4 \strokec4 (word)][word[\cf6 \strokec6 0\cf4 \strokec4 ]][word[\cf6 \strokec6 1\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 elif
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (word) \cf6 \strokec6 ==\cf4 \strokec4  \cf6 \strokec6 3\cf4 \strokec4 :\
+                bi_gram[\cf2 \strokec2 len\cf4 \strokec4 (word)][word[\cf6 \strokec6 0\cf4 \strokec4 ]][word[\cf6 \strokec6 1\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+                bi_gram[\cf2 \strokec2 len\cf4 \strokec4 (word)][word[\cf6 \strokec6 1\cf4 \strokec4 ]][word[\cf6 \strokec6 2\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+                tri_gram[word[\cf6 \strokec6 0\cf4 \strokec4 ]][word[\cf6 \strokec6 1\cf4 \strokec4 ]][word[\cf6 \strokec6 2\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+                \
+            
+\f2\i \cf9 \strokec9 # fill out rest of the (1-4)-grams
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 elif
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (word) \cf6 \strokec6 >=\cf4 \strokec4  \cf6 \strokec6 4\cf4 \strokec4 :\
+                bi_gram[\cf2 \strokec2 len\cf4 \strokec4 (word)][word[i]][word[i\cf6 \strokec6 +1\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+                bi_gram[\cf2 \strokec2 len\cf4 \strokec4 (word)][word[i\cf6 \strokec6 +1\cf4 \strokec4 ]][word[i\cf6 \strokec6 +2\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+                bi_gram[\cf2 \strokec2 len\cf4 \strokec4 (word)][word[i\cf6 \strokec6 +2\cf4 \strokec4 ]][word[i\cf6 \strokec6 +3\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+                tri_gram[word[i]][word[i\cf6 \strokec6 +1\cf4 \strokec4 ]][word[i\cf6 \strokec6 +2\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+                tri_gram[word[i\cf6 \strokec6 +1\cf4 \strokec4 ]][word[i\cf6 \strokec6 +2\cf4 \strokec4 ]][word[i\cf6 \strokec6 +3\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+                four_gram[word[i]][word[i\cf6 \strokec6 +1\cf4 \strokec4 ]][word[i\cf6 \strokec6 +2\cf4 \strokec4 ]][word[i\cf6 \strokec6 +3\cf4 \strokec4 ]] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+            \
+            
+\f2\i \cf9 \strokec9 # fill out unigrams
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 set\cf4 \strokec4 (word):\
+                unigram[\cf2 \strokec2 len\cf4 \strokec4 (word)][letter] \cf6 \strokec6 +=\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 \
+                    \
+        
+\f0\b \cf2 \strokec2 return
+\f1\b0 \cf4 \strokec4  unigram, bi_gram, tri_gram, four_gram, five_gram\
+                    \
+        \
+    
+\f0\b \cf2 \strokec2 def
+\f1\b0 \cf4 \strokec4  \cf5 \strokec5 recalibrate_n_grams\cf4 \strokec4 (\cf2 \strokec2 self\cf4 \strokec4 ):\
+        
+\f2\i \cf8 \strokec8 '''
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         re-tabulates the n-grams after eliminating any incorrectly guessed letters
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         updates the dictionary to remove words containing incorrectly guessed letters
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         '''
+\f1\i0 \cf4 \strokec4 \
+        
+\f2\i \cf9 \strokec9 # updates the dictionary to remove words containing incorrectly guessed letters
+\f1\i0 \cf4 \strokec4 \
+        new_dict \cf6 \strokec6 =\cf4 \strokec4  [word 
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  word 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 full_dictionary 
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 set\cf4 \strokec4 (word)\cf6 \strokec6 .\cf4 \strokec4 intersection(\cf2 \strokec2 set\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 incorrect_guesses))]\
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 unigram, \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 bigram, \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 trigram, \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram, \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram \cf6 \strokec6 =\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 build_n_grams(new_dict)\
+\
+    \
+    
+\f0\b \cf2 \strokec2 def
+\f1\b0 \cf4 \strokec4  \cf5 \strokec5 fivegram_probs\cf4 \strokec4 (\cf2 \strokec2 self\cf4 \strokec4 , word):\
+        
+\f2\i \cf8 \strokec8 ''' 
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Input: the word in the "clean" format with no spaces and a '_' if letter has not been guessed
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Flow: uses tri-gram to calculate the probability of a certain letter appearing in a five-letter sequence for a word of given length
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Output: probabilities for each letter to be used in next level
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         '''
+\f1\i0 \cf4 \strokec4 \
+                \
+        
+\f2\i \cf9 \strokec9 # vector of probabilities for each letter
+\f1\i0 \cf4 \strokec4 \
+        probs \cf6 \strokec6 =\cf4 \strokec4  [\cf6 \strokec6 0\cf4 \strokec4 ] \cf6 \strokec6 *\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)\
+        \
+        total_count \cf6 \strokec6 =\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4 \
+        letter_count \cf6 \strokec6 =\cf4 \strokec4  [\cf6 \strokec6 0\cf4 \strokec4 ] \cf6 \strokec6 *\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)\
+\
+        
+\f2\i \cf9 \strokec9 # traverse the word and find patterns that have three consecutive letters where one of them is blank
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 range\cf4 \strokec4 (\cf2 \strokec2 len\cf4 \strokec4 (word) \cf6 \strokec6 -\cf4 \strokec4  \cf6 \strokec6 4\cf4 \strokec4 ):\
+                        \
+            
+\f2\i \cf9 \strokec9 # case 1: "letter letter letter letter blank"
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +4\cf4 \strokec4 ] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter_1 \cf6 \strokec6 =\cf4 \strokec4  word[i]\
+                anchor_letter_2 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ]\
+                anchor_letter_3 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ]\
+                anchor_letter_4 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "anchor_letter_1 anchor_letter_2 blank" and for each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[anchor_letter_1][anchor_letter_2][anchor_letter_3][anchor_letter_4][letter] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[anchor_letter_1][anchor_letter_2][anchor_letter_3][anchor_letter_4][letter]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[anchor_letter_1][anchor_letter_2][anchor_letter_3][anchor_letter_4][letter]\
+        \
+            
+\f2\i \cf9 \strokec9 # case 2: "letter letter letter blank letter"
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 elif
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +4\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter_1 \cf6 \strokec6 =\cf4 \strokec4  word[i]\
+                anchor_letter_2 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ]\
+                anchor_letter_3 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ]\
+                anchor_letter_4 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +4\cf4 \strokec4 ]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "anchor_letter_1 blank anchor_letter_2" and for each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[anchor_letter_1][anchor_letter_2][anchor_letter_3][letter][anchor_letter_4] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[anchor_letter_1][anchor_letter_2][anchor_letter_3][letter][anchor_letter_4]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[anchor_letter_1][anchor_letter_2][anchor_letter_3][letter][anchor_letter_4]\
+               \
+            
+\f2\i \cf9 \strokec9 # case 3: letter letter blank letter letter
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 elif
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +4\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter_1 \cf6 \strokec6 =\cf4 \strokec4  word[i]\
+                anchor_letter_2 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ]\
+                anchor_letter_3 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ]\
+                anchor_letter_4 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +4\cf4 \strokec4 ]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "blank anchor_letter_1 anchor_letter_2" and for each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[anchor_letter_1][anchor_letter_2][letter][anchor_letter_3][anchor_letter_4] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[anchor_letter_1][anchor_letter_2][letter][anchor_letter_3][anchor_letter_4]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[anchor_letter_1][anchor_letter_2][letter][anchor_letter_3][anchor_letter_4]\
+               \
+            
+\f2\i \cf9 \strokec9 # case 4: letter blank letter letter letter
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 elif
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +4\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter_1 \cf6 \strokec6 =\cf4 \strokec4  word[i]\
+                anchor_letter_2 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ]\
+                anchor_letter_3 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ]\
+                anchor_letter_4 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +4\cf4 \strokec4 ]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "blank anchor_letter_1 anchor_letter_2" and for each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[anchor_letter_1][letter][anchor_letter_2][anchor_letter_3][anchor_letter_4] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[anchor_letter_1][letter][anchor_letter_2][anchor_letter_3][anchor_letter_4]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[anchor_letter_1][letter][anchor_letter_2][anchor_letter_3][anchor_letter_4]\
+        \
+            
+\f2\i \cf9 \strokec9 # case 5: blank letter letter letter letter
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 elif
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +4\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter_1 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ]\
+                anchor_letter_2 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ]\
+                anchor_letter_3 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ]\
+                anchor_letter_4 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +4\cf4 \strokec4 ]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "blank anchor_letter_1 anchor_letter_2" and for each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[letter][anchor_letter_1][anchor_letter_2][anchor_letter_3][anchor_letter_4] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[letter][anchor_letter_1][anchor_letter_2][anchor_letter_3][anchor_letter_4]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fivegram[letter][anchor_letter_1][anchor_letter_2][anchor_letter_3][anchor_letter_4]\
+        \
+        
+\f2\i \cf9 \strokec9 # calculate the probabilities of each letter appearing
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  total_count \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4 :\
+            
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 range\cf4 \strokec4 (\cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)):\
+                probs[i] \cf6 \strokec6 =\cf4 \strokec4  letter_count[i] \cf6 \strokec6 /\cf4 \strokec4  total_count\
+        \
+        
+\f2\i \cf9 \strokec9 # interpolate probabilities between trigram and bigram
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i, p 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities):\
+            \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities[i] \cf6 \strokec6 =\cf4 \strokec4  p \cf6 \strokec6 +\cf4 \strokec4  probs[i] \cf6 \strokec6 *\cf4 \strokec4  (\cf6 \strokec6 0.40\cf4 \strokec4 )\
+        \
+        
+\f2\i \cf9 \strokec9 # run the next level down
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 return
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram_probs(word)\
+    \
+    
+\f0\b \cf2 \strokec2 def
+\f1\b0 \cf4 \strokec4  \cf5 \strokec5 fourgram_probs\cf4 \strokec4 (\cf2 \strokec2 self\cf4 \strokec4 , word):\
+        
+\f2\i \cf8 \strokec8 ''' 
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Input: the word in the "clean" format with no spaces and a '_' if letter has not been guessed
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Flow: uses tri-gram to calculate the probability of a certain letter appearing in a four-letter sequence for a word of given length
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Output: probabilities for each letter to be used in next level
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         '''
+\f1\i0 \cf4 \strokec4 \
+                \
+        
+\f2\i \cf9 \strokec9 # vector of probabilities for each letter
+\f1\i0 \cf4 \strokec4 \
+        probs \cf6 \strokec6 =\cf4 \strokec4  [\cf6 \strokec6 0\cf4 \strokec4 ] \cf6 \strokec6 *\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)\
+        \
+        total_count \cf6 \strokec6 =\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4 \
+        letter_count \cf6 \strokec6 =\cf4 \strokec4  [\cf6 \strokec6 0\cf4 \strokec4 ] \cf6 \strokec6 *\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)\
+\
+        
+\f2\i \cf9 \strokec9 # traverse the word and find patterns that have three consecutive letters where one of them is blank
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 range\cf4 \strokec4 (\cf2 \strokec2 len\cf4 \strokec4 (word) \cf6 \strokec6 -\cf4 \strokec4  \cf6 \strokec6 3\cf4 \strokec4 ):\
+                        \
+            
+\f2\i \cf9 \strokec9 # case 1: "letter letter letter blank"
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter_1 \cf6 \strokec6 =\cf4 \strokec4  word[i]\
+                anchor_letter_2 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ]\
+                anchor_letter_3 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "anchor_letter_1 anchor_letter_2 blank" and for each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram[anchor_letter_1][anchor_letter_2][anchor_letter_3][letter] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram[anchor_letter_1][anchor_letter_2][anchor_letter_3][letter]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram[anchor_letter_1][anchor_letter_2][anchor_letter_3][letter]\
+        \
+            
+\f2\i \cf9 \strokec9 # case 2: "letter letter blank letter"
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 elif
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter_1 \cf6 \strokec6 =\cf4 \strokec4  word[i]\
+                anchor_letter_2 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ]\
+                anchor_letter_3 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "anchor_letter_1 blank anchor_letter_2" and for each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram[anchor_letter_1][anchor_letter_2][letter][anchor_letter_3] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram[anchor_letter_1][anchor_letter_2][letter][anchor_letter_3]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram[anchor_letter_1][anchor_letter_2][letter][anchor_letter_3]\
+               \
+            
+\f2\i \cf9 \strokec9 # case 3: letter blank letter letter
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 elif
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter_1 \cf6 \strokec6 =\cf4 \strokec4  word[i]\
+                anchor_letter_2 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ]\
+                anchor_letter_3 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "blank anchor_letter_1 anchor_letter_2" and for each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram[anchor_letter_1][letter][anchor_letter_2][anchor_letter_3] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram[anchor_letter_1][letter][anchor_letter_2][anchor_letter_3]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram[anchor_letter_1][letter][anchor_letter_2][anchor_letter_3]\
+               \
+            
+\f2\i \cf9 \strokec9 # case 4: blank letter letter letter
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 elif
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter_1 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ]\
+                anchor_letter_2 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ]\
+                anchor_letter_3 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +3\cf4 \strokec4 ]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "blank anchor_letter_1 anchor_letter_2" and for each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram[letter][anchor_letter_1][anchor_letter_2][anchor_letter_3] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram[letter][anchor_letter_1][anchor_letter_2][anchor_letter_3]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 fourgram[letter][anchor_letter_1][anchor_letter_2][anchor_letter_3]\
+        \
+        
+\f2\i \cf9 \strokec9 # calculate the probabilities of each letter appearing
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  total_count \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4 :\
+            
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 range\cf4 \strokec4 (\cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)):\
+                probs[i] \cf6 \strokec6 =\cf4 \strokec4  letter_count[i] \cf6 \strokec6 /\cf4 \strokec4  total_count\
+        \
+        
+\f2\i \cf9 \strokec9 # interpolate probabilities between trigram and bigram
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i, p 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities):\
+            \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities[i] \cf6 \strokec6 =\cf4 \strokec4  p \cf6 \strokec6 +\cf4 \strokec4  probs[i] \cf6 \strokec6 *\cf4 \strokec4  (\cf6 \strokec6 0.25\cf4 \strokec4 )\
+        \
+        
+\f2\i \cf9 \strokec9 # run the next level down
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 return
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 trigram_probs(word)\
+\
+    
+\f0\b \cf2 \strokec2 def
+\f1\b0 \cf4 \strokec4  \cf5 \strokec5 trigram_probs\cf4 \strokec4 (\cf2 \strokec2 self\cf4 \strokec4 , word):\
+        
+\f2\i \cf8 \strokec8 ''' 
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Input: the word in the "clean" format with no spaces and a '_' if letter has not been guessed
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Flow: uses tri-gram to calculate the probability of a certain letter appearing in a three-letter sequence for a word of given length
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Output: probabilities for each letter to be used in next level
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         '''
+\f1\i0 \cf4 \strokec4 \
+                \
+        
+\f2\i \cf9 \strokec9 # vector of probabilities for each letter
+\f1\i0 \cf4 \strokec4 \
+        probs \cf6 \strokec6 =\cf4 \strokec4  [\cf6 \strokec6 0\cf4 \strokec4 ] \cf6 \strokec6 *\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)\
+        \
+        total_count \cf6 \strokec6 =\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4 \
+        letter_count \cf6 \strokec6 =\cf4 \strokec4  [\cf6 \strokec6 0\cf4 \strokec4 ] \cf6 \strokec6 *\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)\
+\
+        
+\f2\i \cf9 \strokec9 # traverse the word and find patterns that have three consecutive letters where one of them is blank
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 range\cf4 \strokec4 (\cf2 \strokec2 len\cf4 \strokec4 (word) \cf6 \strokec6 -\cf4 \strokec4  \cf6 \strokec6 2\cf4 \strokec4 ):\
+                        \
+            
+\f2\i \cf9 \strokec9 # case 1: "letter letter blank"
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter_1 \cf6 \strokec6 =\cf4 \strokec4  word[i]\
+                anchor_letter_2 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "anchor_letter_1 anchor_letter_2 blank" and for each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 trigram[anchor_letter_1][anchor_letter_2][letter] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 trigram[anchor_letter_1][anchor_letter_2][letter]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 trigram[anchor_letter_1][anchor_letter_2][letter]\
+        \
+            
+\f2\i \cf9 \strokec9 # case 2: "letter blank letter"
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 elif
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter_1 \cf6 \strokec6 =\cf4 \strokec4  word[i]\
+                anchor_letter_2 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "anchor_letter_1 blank anchor_letter_2" and for each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 trigram[anchor_letter_1][letter][anchor_letter_2] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 trigram[anchor_letter_1][letter][anchor_letter_2]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 trigram[anchor_letter_1][letter][anchor_letter_2]\
+               \
+            
+\f2\i \cf9 \strokec9 # case 3: blank letter letter
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 elif
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter_1 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ]\
+                anchor_letter_2 \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +2\cf4 \strokec4 ]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "blank anchor_letter_1 anchor_letter_2" and for each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 trigram[letter][anchor_letter_1][anchor_letter_2] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 trigram[letter][anchor_letter_1][anchor_letter_2]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 trigram[letter][anchor_letter_1][anchor_letter_2]\
+        \
+        
+\f2\i \cf9 \strokec9 # calculate the probabilities of each letter appearing
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  total_count \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4 :\
+            
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 range\cf4 \strokec4 (\cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)):\
+                probs[i] \cf6 \strokec6 =\cf4 \strokec4  letter_count[i] \cf6 \strokec6 /\cf4 \strokec4  total_count\
+        \
+        
+\f2\i \cf9 \strokec9 # interpolate probabilities between trigram and bigram
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i, p 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities):\
+            \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities[i] \cf6 \strokec6 =\cf4 \strokec4  p \cf6 \strokec6 +\cf4 \strokec4  probs[i] \cf6 \strokec6 *\cf4 \strokec4  (\cf6 \strokec6 0.20\cf4 \strokec4 )\
+        \
+        
+\f2\i \cf9 \strokec9 # run the next level down
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 return
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 bigram_probs(word)\
+    \
+    \
+    
+\f0\b \cf2 \strokec2 def
+\f1\b0 \cf4 \strokec4  \cf5 \strokec5 bigram_probs\cf4 \strokec4 (\cf2 \strokec2 self\cf4 \strokec4 , word):\
+        
+\f2\i \cf8 \strokec8 ''' 
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Input: the word in the "clean" format with no spaces and a '_' if letter has not been guessed
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Flow: uses bi-gram to calculate the probability of a certain letter appearing in a two-letter sequence for a word of given length
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8               updates the probabilities set in trigram_probs
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Output: probabilities for each letter to be used in next level
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         '''
+\f1\i0 \cf4 \strokec4 \
+        \
+        
+\f2\i \cf9 \strokec9 # vector of probabilities for each letter
+\f1\i0 \cf4 \strokec4 \
+        probs \cf6 \strokec6 =\cf4 \strokec4  [\cf6 \strokec6 0\cf4 \strokec4 ] \cf6 \strokec6 *\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)\
+        \
+        total_count \cf6 \strokec6 =\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4 \
+        letter_count \cf6 \strokec6 =\cf4 \strokec4  [\cf6 \strokec6 0\cf4 \strokec4 ] \cf6 \strokec6 *\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)\
+        \
+        
+\f2\i \cf9 \strokec9 # traverse the word and find either patterns of "letter blank" or "blank letter"
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 range\cf4 \strokec4 (\cf2 \strokec2 len\cf4 \strokec4 (word) \cf6 \strokec6 -\cf4 \strokec4  \cf6 \strokec6 1\cf4 \strokec4 ):\
+            
+\f2\i \cf9 \strokec9 # case 1: "letter blank"
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter \cf6 \strokec6 =\cf4 \strokec4  word[i]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "anchor_letter blank" and each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 bigram[\cf2 \strokec2 len\cf4 \strokec4 (word)][anchor_letter][letter] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 bigram[\cf2 \strokec2 len\cf4 \strokec4 (word)][anchor_letter][letter]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 bigram[\cf2 \strokec2 len\cf4 \strokec4 (word)][anchor_letter][letter]\
+                            \
+            
+\f2\i \cf9 \strokec9 # case 2: "blank letter"
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 elif
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ]\cf6 \strokec6 !=\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                anchor_letter \cf6 \strokec6 =\cf4 \strokec4  word[i\cf6 \strokec6 +1\cf4 \strokec4 ]\
+                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of "blank anchor_letter" and each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 bigram[\cf2 \strokec2 len\cf4 \strokec4 (word)][letter][anchor_letter] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 bigram[\cf2 \strokec2 len\cf4 \strokec4 (word)][letter][anchor_letter]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 bigram[\cf2 \strokec2 len\cf4 \strokec4 (word)][letter][anchor_letter]\
+                                                                    \
+        
+\f2\i \cf9 \strokec9 # calculate the probabilities of each letter appearing
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  total_count \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4 :\
+            
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 range\cf4 \strokec4 (\cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)):\
+                probs[i] \cf6 \strokec6 =\cf4 \strokec4  letter_count[i] \cf6 \strokec6 /\cf4 \strokec4  total_count\
+\
+        
+\f2\i \cf9 \strokec9 # interpolate probabilities between trigram and bigram
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i, p 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities):\
+            \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities[i] \cf6 \strokec6 =\cf4 \strokec4  p \cf6 \strokec6 +\cf4 \strokec4  probs[i] \cf6 \strokec6 *\cf4 \strokec4  (\cf6 \strokec6 0.10\cf4 \strokec4 )\
+        \
+        
+\f2\i \cf9 \strokec9 # return letter associated with highest probability
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 return
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 unigram_probs(word)\
+    \
+    \
+    
+\f0\b \cf2 \strokec2 def
+\f1\b0 \cf4 \strokec4  \cf5 \strokec5 unigram_probs\cf4 \strokec4 (\cf2 \strokec2 self\cf4 \strokec4 , word):\
+        
+\f2\i \cf8 \strokec8 ''' 
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Input: the word in the "clean" format with no spaces and a '_' if letter has not been guessed
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Flow: uses unigram to calculate the probability of a certain letter appearing in a any blank space
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8               updates the probabilities set in bigram_probs
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         Output: letter with the overall highest probability
+\f1\i0 \cf4 \strokec4 \
+
+\f2\i \cf8 \strokec8         '''
+\f1\i0 \cf4 \strokec4 \
+                \
+        
+\f2\i \cf9 \strokec9 # vector of probabilities for each letter
+\f1\i0 \cf4 \strokec4 \
+        probs \cf6 \strokec6 =\cf4 \strokec4  [\cf6 \strokec6 0\cf4 \strokec4 ] \cf6 \strokec6 *\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)\
+        \
+        total_count \cf6 \strokec6 =\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4 \
+        letter_count \cf6 \strokec6 =\cf4 \strokec4  [\cf6 \strokec6 0\cf4 \strokec4 ] \cf6 \strokec6 *\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)\
+        \
+        
+\f2\i \cf9 \strokec9 # traverse the word and find blank spaces
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 range\cf4 \strokec4 (\cf2 \strokec2 len\cf4 \strokec4 (word)):\
+            
+\f2\i \cf9 \strokec9 # case 1: "letter blank"
+\f1\i0 \cf4 \strokec4 \
+            
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  word[i] \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 '_'\cf4 \strokec4 :\
+                                \
+                
+\f2\i \cf9 \strokec9 # calculate occurences of pattern and each letter not guessed yet
+\f1\i0 \cf4 \strokec4 \
+                
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  j, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+                    
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 unigram[\cf2 \strokec2 len\cf4 \strokec4 (word)][letter] \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4  
+\f0\b \cf7 \strokec7 and
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                        total_count \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 unigram[\cf2 \strokec2 len\cf4 \strokec4 (word)][letter]\
+                        letter_count[j] \cf6 \strokec6 +=\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 unigram[\cf2 \strokec2 len\cf4 \strokec4 (word)][letter]\
+                       \
+        
+\f2\i \cf9 \strokec9 # calculate the probabilities of each letter appearing
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  total_count \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4 :\
+            
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 range\cf4 \strokec4 (\cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)):\
+                probs[i] \cf6 \strokec6 =\cf4 \strokec4  letter_count[i] \cf6 \strokec6 /\cf4 \strokec4  total_count\
+                \
+        
+\f2\i \cf9 \strokec9 # interpolate probabilities
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i, p 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities):\
+            \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities[i] \cf6 \strokec6 =\cf4 \strokec4  p \cf6 \strokec6 +\cf4 \strokec4  probs[i] \cf6 \strokec6 *\cf4 \strokec4  (\cf6 \strokec6 0.05\cf4 \strokec4 )\
+        \
+        
+\f2\i \cf9 \strokec9 # adjust probabilities so they sum to one (not necessary but looks better)
+\f1\i0 \cf4 \strokec4 \
+        final_probs \cf6 \strokec6 =\cf4 \strokec4  [\cf6 \strokec6 0\cf4 \strokec4 ] \cf6 \strokec6 *\cf4 \strokec4  \cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set)\
+        
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 sum\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities) \cf6 \strokec6 >\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4 :\
+            
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 range\cf4 \strokec4 (\cf2 \strokec2 len\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities)):\
+                final_probs[i] \cf6 \strokec6 =\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities[i] \cf6 \strokec6 /\cf4 \strokec4  \cf2 \strokec2 sum\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities)\
+            \
+        \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities \cf6 \strokec6 =\cf4 \strokec4  final_probs\
+        \
+        
+\f2\i \cf9 \strokec9 # find letter with largest probability
+\f1\i0 \cf4 \strokec4 \
+        max_prob \cf6 \strokec6 =\cf4 \strokec4  \cf6 \strokec6 0\cf4 \strokec4 \
+        guess_letter \cf6 \strokec6 =\cf4 \strokec4  \cf8 \strokec8 ''\cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  i, letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 enumerate\cf4 \strokec4 (\cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set):\
+            
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities[i] \cf6 \strokec6 >\cf4 \strokec4  max_prob:\
+                max_prob \cf6 \strokec6 =\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 probabilities[i]\
+                guess_letter \cf6 \strokec6 =\cf4 \strokec4  letter\
+        \
+        
+\f2\i \cf9 \strokec9 # if no letter chosen from above, pick a random one (extra weight on vowels)
+\f1\i0 \cf4 \strokec4 \
+        
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  guess_letter \cf6 \strokec6 ==\cf4 \strokec4  \cf8 \strokec8 ''\cf4 \strokec4 :\
+            letters \cf6 \strokec6 =\cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 letter_set\cf6 \strokec6 .\cf4 \strokec4 copy()\
+            random\cf6 \strokec6 .\cf4 \strokec4 shuffle(letters)\
+            letters_shuffled \cf6 \strokec6 =\cf4 \strokec4  [\cf8 \strokec8 'e'\cf4 \strokec4 ,\cf8 \strokec8 'a'\cf4 \strokec4 ,\cf8 \strokec8 'i'\cf4 \strokec4 ,\cf8 \strokec8 'o'\cf4 \strokec4 ,\cf8 \strokec8 'u'\cf4 \strokec4 ] \cf6 \strokec6 +\cf4 \strokec4  letters\
+            
+\f0\b \cf2 \strokec2 for
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  letters_shuffled:\
+                
+\f0\b \cf2 \strokec2 if
+\f1\b0 \cf4 \strokec4  letter 
+\f0\b \cf7 \strokec7 not
+\f1\b0 \cf4 \strokec4  
+\f0\b \cf7 \strokec7 in
+\f1\b0 \cf4 \strokec4  \cf2 \strokec2 self\cf6 \strokec6 .\cf4 \strokec4 guessed_letters:\
+                    
+\f0\b \cf2 \strokec2 return
+\f1\b0 \cf4 \strokec4  letter\
+            \
+        
+\f0\b \cf2 \strokec2 return
+\f1\b0 \cf4 \strokec4  guess_letter\
+}
